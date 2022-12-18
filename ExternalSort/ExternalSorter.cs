@@ -5,27 +5,21 @@ namespace ExternalSort;
 
 public class ExternalSorter
 {
-    private readonly ExternalSorterOptions options;
+    private readonly FileSplitter splitter;
+    private readonly FileSorter sorter;
+    private readonly FileMerger merger;
 
-    public ExternalSorter(ExternalSorterOptions options)
+    public ExternalSorter(FileSplitter splitter, FileSorter sorter, FileMerger merger)
     {
-        this.options = options;
+        this.splitter = splitter;
+        this.sorter = sorter;
+        this.merger = merger;
     }
 
     public void Sort(string path, string outPath)
     {
-        var lines = File.ReadAllLines(path);
-        Array.Sort(lines, (string1, string2) =>
-        {
-            var (index1, line1) = Helpers.ParseLine(string1);
-            var (index2, line2) = Helpers.ParseLine(string2);
-            if (line1 == line2)
-            {
-                return index1.CompareTo(index2);
-            }
-
-            return string.Compare(line1, line2, StringComparison.OrdinalIgnoreCase);
-        });
-        File.WriteAllLines(outPath, lines);
+        var files = splitter.SplitFile(path);
+        var sorted = sorter.SortFiles(files);
+        merger.Merge(sorted, outPath);
     }
 }

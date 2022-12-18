@@ -1,4 +1,6 @@
-﻿namespace ExternalSort;
+﻿using System;
+
+namespace ExternalSort;
 
 public class ExternalSorterOptions
 {

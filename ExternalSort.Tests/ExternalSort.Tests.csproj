@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Files\example.txt" CopyToOutputDirectory="Always" />
+    <Content Include="Files\*.txt" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>

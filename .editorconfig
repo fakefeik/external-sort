@@ -12,3 +12,6 @@ insert_final_newline = true
 [*.csproj]
 indent_size = 2
 ij_xml_space_inside_empty_tag = true
+
+[*.txt]
+insert_final_newline = false
