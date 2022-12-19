@@ -3,6 +3,11 @@ using System.IO;
 
 namespace ExternalSort.FileManager;
 
+/// <summary>
+///     note: tried to optimize file deletion:
+///     delete all temp files in the very end of sorting instead of deleting them as we go to get rid of possible interference,
+///     the effect was negligible, this code is therefore not used in real application
+/// </summary>
 public class TempFolderFileManager : IFileManager
 {
     private readonly string tempDirectory;
