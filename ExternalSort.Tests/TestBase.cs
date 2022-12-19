@@ -18,12 +18,14 @@ public abstract class TestBase
         Directory.CreateDirectory(tempDirectory);
     }
 
-    protected void AssertSorted(string filename)
+    protected int AssertSorted(string filename)
     {
         var prevIndex = 0;
         string? prevLine = null;
+        var count = 0;
         foreach (var (index, line) in File.ReadLines(filename).Select(ParseLine))
         {
+            count++;
             if (prevLine == null)
             {
                 prevIndex = index;
@@ -40,6 +42,8 @@ public abstract class TestBase
             prevIndex = index;
             prevLine = line;
         }
+
+        return count;
     }
 
 

@@ -1,7 +1,7 @@
-﻿using System.Collections;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using ExternalSort.Generator;
+using ExternalSort.Splitter;
 using NUnit.Framework;
 
 namespace ExternalSort.Tests;
@@ -11,7 +11,7 @@ public class FileSplitterTest : TestBase
     [Test]
     public void Should_ProduceSingleFile_ForSmallFile()
     {
-        var splitter = new FileSplitter(1024, new TestFileNameProvider());
+        var splitter = new FileSplitter(1024, new TestFileManager());
         splitter.SplitFile(GetFilePath("example.txt"));
 
         Assert.That(Directory.EnumerateFiles(GetTempDirectory()), Has.One.Items);
@@ -23,7 +23,7 @@ public class FileSplitterTest : TestBase
     [Test]
     public void Should_ProduceSingleFile_ForLargeFileWithSingleLine()
     {
-        var splitter = new FileSplitter(512, new TestFileNameProvider());
+        var splitter = new FileSplitter(512, new TestFileManager());
         var files = splitter.SplitFile(GetFilePath("split-single-large.txt"));
 
         Assert.That(Directory.EnumerateFiles(GetTempDirectory()), Has.One.Items);
@@ -36,7 +36,7 @@ public class FileSplitterTest : TestBase
     [Test]
     public void Should_SplitInTwoFiles()
     {
-        var splitter = new FileSplitter(50, new TestFileNameProvider());
+        var splitter = new FileSplitter(50, new TestFileManager());
         var files = splitter.SplitFile(GetFilePath("example.txt"));
         Assert.That(files, Is.EquivalentTo(Enumerable.Range(0, 2).Select(i => GetTempFilePath($"unsorted.{i}.txt"))));
         Assert.That(Directory.EnumerateFiles(GetTempDirectory()), Has.Exactly(2).Items);
@@ -51,7 +51,7 @@ public class FileSplitterTest : TestBase
     [Test]
     public void Should_SplitInFiveFiles()
     {
-        var splitter = new FileSplitter(1, new TestFileNameProvider());
+        var splitter = new FileSplitter(1, new TestFileManager());
         var files = splitter.SplitFile(GetFilePath("example.txt"));
         Assert.That(files, Is.EquivalentTo(Enumerable.Range(0, 5).Select(i => GetTempFilePath($"unsorted.{i}.txt"))));
         Assert.That(Directory.EnumerateFiles(GetTempDirectory()), Has.Exactly(5).Items);
@@ -68,7 +68,7 @@ public class FileSplitterTest : TestBase
         var generator = new CaseGenerator(new CaseGeneratorOptions {LinesCount = 1024 * 1024 * 8}, Words.All);
         generator.Generate(GetTempFilePath("generated.txt"));
 
-        var splitter = new FileSplitter(1024 * 1024 * 32, new TestFileNameProvider());
+        var splitter = new FileSplitter(1024 * 1024 * 32, new TestFileManager());
         var files = splitter.SplitFile(GetTempFilePath("generated.txt"));
 
         Assert.That(Directory.EnumerateFiles(GetTempDirectory()), Has.Exactly(files.Length + 1).Items);

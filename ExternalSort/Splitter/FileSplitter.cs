@@ -1,17 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using ExternalSort.FileManager;
 
-namespace ExternalSort;
+namespace ExternalSort.Splitter;
 
-public class FileSplitter
+public class FileSplitter : IFileSplitter
 {
     private readonly int fileSize;
-    private readonly IFileNameProvider fileNameProvider;
+    private readonly IFileManager fileManager;
 
-    public FileSplitter(int fileSize, IFileNameProvider fileNameProvider)
+    public FileSplitter(int fileSize, IFileManager fileManager)
     {
         this.fileSize = fileSize;
-        this.fileNameProvider = fileNameProvider;
+        this.fileManager = fileManager;
     }
 
     public string[] SplitFile(string filename)
@@ -52,7 +53,7 @@ public class FileSplitter
                 }
             }
 
-            var unsortedFileName = fileNameProvider.GetUnsortedFileName(currentFile++);
+            var unsortedFileName = fileManager.GetUnsortedFileName(currentFile++);
             using var unsortedFile = new FileStream(unsortedFileName, FileMode.OpenOrCreate, FileAccess.Write);
             unsortedFile.Write(buffer, 0, bytesRead);
             if (extraBuffer.Count > 0)

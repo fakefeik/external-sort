@@ -29,9 +29,9 @@ public class TournamentTreeTest
     [Test]
     public void Test2()
     {
-        var exampleInput2 = new[] {4, 3, 1, 2, 5};
-        var solution2 = new[] {1, 2, 3, 4, 5};
-        var calculatedSolution2 = new TournamentTree<int>(exampleInput2).SortRest();
+        var exampleInput2 = new[] {"4. a", "3. a", "1. a", "2. a", "5. a"};
+        var solution2 = new[] {"1. a", "2. a", "3. a", "4. a", "5. a"};
+        var calculatedSolution2 = new TournamentTree<string>(exampleInput2, FastStringComparer.Instance).SortRest();
 
         Assert.That(calculatedSolution2, Is.EqualTo(solution2));
     }

@@ -9,10 +9,9 @@ public class FastStringComparer : IComparer<string?>
 
     public int Compare(string? x, string? y)
     {
-        if (string.IsNullOrEmpty(x) || string.IsNullOrEmpty(y))
-        {
-            return string.Compare(x, y, StringComparison.OrdinalIgnoreCase);
-        }
+        if (ReferenceEquals(x, y)) return 0;
+        if (ReferenceEquals(null, y)) return -1;
+        if (ReferenceEquals(null, x)) return 1;
 
         var dot1 = x.IndexOf(". ", StringComparison.OrdinalIgnoreCase);
         var dot2 = y.IndexOf(". ", StringComparison.OrdinalIgnoreCase);

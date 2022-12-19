@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
 
 namespace ExternalSort.Generator;
@@ -8,9 +7,7 @@ public class Words
 {
     public static readonly string[] All =
         Encoding.UTF8.GetString(LoadResource("words.txt").AsSpan(Encoding.UTF8.Preamble.Length))
-            .Split("\n")
-            .Select(x => x.Trim())
-            .ToArray();
+            .Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private static byte[] LoadResource(string name)
     {

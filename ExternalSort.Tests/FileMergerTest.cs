@@ -2,7 +2,11 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ExternalSort.Generator;
+using ExternalSort.Merger;
+using ExternalSort.Sorter;
+using ExternalSort.Splitter;
 using NUnit.Framework;
 
 namespace ExternalSort.Tests;
@@ -12,23 +16,31 @@ public class FileMergerTest : TestBase
     [TestCase(2)]
     [TestCase(5)]
     [TestCase(10)]
-    public void SimpleTest(int fileCount)
+    public async Task SimpleTest(int fileCount)
     {
         var counts = new[] {1, 2, 5, 16, 3, 8, 1, 3, 5, 9, 1, 1};
-        var lines = File.ReadAllLines(GetFilePath("for-merge.txt"));
+        var lines = await File.ReadAllLinesAsync(GetFilePath("for-merge.txt"));
         Split(lines, counts);
 
-        var merger = new FileMerger(fileCount, new TestFileNameProvider(), FastStringComparer.Instance);
+        var merger = new ParallelFileMerger(fileCount, new TestFileManager(), FastStringComparer.Instance);
         var files = Enumerable.Range(0, 12).Select(i => GetTempFilePath($"for-merge.{i}.txt")).ToArray();
-        merger.Merge(files, GetTempFilePath("merged.txt"));
+        await merger.MergeAsync(files, GetTempFilePath("merged.txt"));
 
-        var actual = File.ReadAllLines(GetTempFilePath("merged.txt"));
+        var actual = await File.ReadAllLinesAsync(GetTempFilePath("merged.txt"));
         Array.Sort(lines, FastStringComparer.Instance);
         Assert.That(actual, Is.EqualTo(lines));
     }
 
-    [Test]
-    public void TestLarge()
+    /// <summary>
+    ///     note: In general we do not need Async in this task because we are not handling thousands of RPS and thus not limited by thread pool resources
+    ///     tried to use Async tasks anyway to see what difference does it make
+    ///     in AsyncFileSorter we spawn tasks all immediately, in AsyncFileMerger we run Environment.ProcessorCount tasks at a time
+    ///     in the end both loose to simple Parallel.For without any async code
+    /// </summary>
+    /// <param name="mergerType"></param>
+    [TestCase(typeof(ParallelFileMerger))]
+    [TestCase(typeof(AsyncFileMerger))]
+    public async Task TestLarge(Type mergerType)
     {
         var generator = new CaseGenerator(new CaseGeneratorOptions
         {
@@ -37,15 +49,20 @@ public class FileMergerTest : TestBase
         }, Words.All);
         generator.Generate(GetTempFilePath("generated.txt"));
 
-        var splitter = new FileSplitter(1024 * 1024 * 64, new TestFileNameProvider());
+        var splitter = new FileSplitter(1024 * 1024 * 64, new TestFileManager());
         var files = splitter.SplitFile(GetTempFilePath("generated.txt"));
 
-        var sorter = new FileSorter(new TestFileNameProvider(), FastStringComparer.Instance);
-        var sorted = sorter.SortFiles(files);
+        var sorter = new ParallelFileSorter(new TestFileManager(), FastStringComparer.Instance);
+        var sorted = await sorter.SortFilesAsync(files);
 
-        var merger = new FileMerger(8, new TestFileNameProvider(), FastStringComparer.Instance);
+        var merger = (IFileMerger) Activator.CreateInstance(
+            mergerType,
+            8,
+            new TestFileManager(),
+            FastStringComparer.Instance
+        )!;
         var stopwatch = Stopwatch.StartNew();
-        merger.Merge(sorted, GetTempFilePath("sorted.txt"));
+        await merger.MergeAsync(sorted, GetTempFilePath("sorted.txt"));
         stopwatch.Stop();
         Console.WriteLine(stopwatch.ElapsedMilliseconds);
 
